@@ -1,44 +1,58 @@
 import React, { Component } from "react";
+import auth from "../services/authService";
 import Like from "./common/like";
+import Table from "./common/table";
+import { Link } from "react-router-dom";
 
-const MoviesTable = props => {
-  const { movies, onDelete, onLike, onSort } = props;
-  return (
-    <table className="table">
-      <thead>
-        <tr>
-          <th onClick={() => onSort("title")}>Title</th>
-          <th onClick={() => onSort("genre.name")}>Genre</th>
-          <th onClick={() => onSort("numberInStock")}>Stock</th>
-          <th onClick={() => onSort("dailyRentalRate")}>Rate</th>
-          <th />
-          <th />
-        </tr>
-      </thead>
-      <tbody>
-        {movies.map(movie => (
-          <tr key={movie._id}>
-            <td>{movie.title}</td>
-            <td>{movie.genre.name}</td>
-            <td>{movie.numberInStock}</td>
-            <td>{movie.dailyRentalRate} </td>
-            <td />
-            <td>
-              <Like liked={movie.liked} onClick={() => onLike(movie)} />
-            </td>
-            <td>
-              <button
-                onClick={() => onDelete(movie)}
-                className="btn btn-danger sm"
-              >
-                Delete{" "}
-              </button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-};
+class MoviesTable extends Component {
+  columns = [
+    {
+      path: "title",
+      label: "Title",
+      content: movie => (
+        <Link className="nav-link" to={`/movies/${movie._id}`}>
+          {movie.title}
+        </Link>
+      )
+    },
+    { path: "genre.name", label: "Genre" },
+    { path: "numberInStock", label: "Stock" },
+    { path: "dailyRentalRate", label: "Rate" },
+    {
+      key: "like",
+      content: movie => (
+        <Like liked={movie.liked} onClick={() => this.props.onLike(movie)} />
+      )
+    }
+  ];
+
+  deleteColumn = {
+    key: "delete",
+    content: movie => (
+      <button
+        onClick={() => this.props.onDelete(movie)}
+        className="btn btn-danger sm"
+      >
+        Delete
+      </button>
+    )
+  };
+  constructor() {
+    super();
+    const user = auth.getCurrentUser();
+    if (user && user.isAdmin) this.columns.push(this.deleteColumn);
+  }
+  render() {
+    const { movies, onSort, sortColumn } = this.props;
+    return (
+      <Table
+        columns={this.columns}
+        data={movies}
+        sortColumn={sortColumn}
+        onSort={onSort}
+      />
+    );
+  }
+}
 
 export default MoviesTable;
