@@ -28,7 +28,8 @@ class RegisterForm extends Form {
     try {
       const response = await userService.register(this.state.data);
       auth.loginWithJwt(response.headers["x-auth-token"]);
-      window.location("/");
+      const { state } = this.props.location;
+      window.location = state ? state.from.pathname : "/";
     } catch (ex) {
       if (ex.response && ex.response.status === 400) {
         const errors = { ...this.state.errors };
